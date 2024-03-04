@@ -1,0 +1,42 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+' Changes the color of the notes button on supply and demand when a note is present
+' 1/12/2020
+' hook 14050
+' JSO
+
+Function.ODBC.Connection!con.OpenConnection(Variable.Ambient.PDSN,Variable.Ambient.PUser,Variable.Ambient.PPass)
+Function.Intrinsic.Variable.SetProperty("000003","BC","DEFAULT")
+Function.Intrinsic.Control.CallSub("ChangeColor")
+
+Program.Sub.Main.End
+
+Program.Sub.ChangeColor.Start
+Variable.Local.sPart.Declare(String)
+Variable.Local.sLoc.Declare(String)
+Variable.Local.sSql.Declare(String)
+
+Function.Intrinsic.String.GSSPartString(Variable.Passed.000003,Variable.Passed.000099,Variable.Local.sPart)
+Variable.Local.sLoc.Set(Variable.Passed.000004)
+
+'/////////////////////////////////BJL 8/26/2014 ADDED FUNCTIONALITY TO ACCOUNT FOR APOSTROPHE'S IN PART NUMBER PER BUG REPORTED BY ALEXANDRA PRO FAB
+F.Intrinsic.String.Replace(V.Local.sPart,"'","''",V.Local.sPart)
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Function.Intrinsic.String.Concat("SELECT * FROM V_PART_NOTES WHERE PART = '",Variable.Local.sPart.PSQLFriendly,"' AND LOCN = '",Variable.Local.sLoc.PSQLFriendly,"'",Variable.Local.sSql)
+Function.ODBC.Connection!con.OpenRecordsetRO("rst1",Variable.Local.sSql)
+Function.Intrinsic.Control.If(Variable.ODBC.con!rst1.EOF,=,False)
+' Note found change color of notes button
+	Function.Intrinsic.Variable.SetProperty("000003","BC","EEDE61")
+	Function.Intrinsic.Variable.SetProperty("000003","FC","000000")
+Function.Intrinsic.Control.EndIf
+Function.ODBC.con!rst1.Close
+Program.Sub.ChangeColor.End
+
+
